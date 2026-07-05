@@ -3,17 +3,16 @@ package PyGMA;
 import android.app.Activity;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 
 import com.google.android.libraries.ads.mobile.sdk.rewardedinterstitial.RewardedInterstitialAd;
-import com.google.android.libraries.ads.mobile.sdk.rewardedinterstitial.RewardedInterstitialAdLoadCallback;
+import com.google.android.libraries.ads.mobile.sdk.rewardedinterstitial.RewardedInterstitialAdEventCallback;
 import com.google.android.libraries.ads.mobile.sdk.rewarded.RewardItem;
-import com.google.android.libraries.ads.mobile.sdk.common.AdError;
-import com.google.android.libraries.ads.mobile.sdk.FullScreenContentCallback;
-import com.google.android.libraries.ads.mobile.sdk.adrequest.AdRequest;
+import com.google.android.libraries.ads.mobile.sdk.common.AdRequest;
+import com.google.android.libraries.ads.mobile.sdk.common.AdLoadCallback;
+import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError;
+import com.google.android.libraries.ads.mobile.sdk.common.FullScreenContentError;
 
 public class PyRewardedInterstitialAd {
-    private static final String TAG = "PyRewardedInterAd";
     private RewardedInterstitialAd mAd;
     private Activity mActivity;
     private String mAdUnitId;
@@ -28,19 +27,18 @@ public class PyRewardedInterstitialAd {
 
     public void loadAd() {
         new Handler(Looper.getMainLooper()).post(() -> {
-            AdRequest request = new AdRequest.Builder().build();
+            AdRequest request = new AdRequest.Builder(mAdUnitId).build();
 
             RewardedInterstitialAd.load(
-                    mActivity, mAdUnitId, request,
-                    new RewardedInterstitialAdLoadCallback() {
+                    mActivity, request,
+                    new AdLoadCallback<RewardedInterstitialAd>() {
                         @Override
                         public void onAdLoaded(RewardedInterstitialAd ad) {
-                            Log.d(TAG, "Rewarded Interstitial Loaded.");
                             mAd = ad;
                             rewardEarned = false;
                             adClosed = false;
 
-                            mAd.setFullScreenContentCallback(new FullScreenContentCallback() {
+                            mAd.setAdEventCallback(new RewardedInterstitialAdEventCallback() {
                                 @Override
                                 public void onAdDismissedFullScreenContent() {
                                     adClosed = true;
@@ -48,7 +46,7 @@ public class PyRewardedInterstitialAd {
                                 }
 
                                 @Override
-                                public void onAdFailedToShowFullScreenContent(AdError adError) {
+                                public void onAdFailedToShowFullScreenContent(FullScreenContentError error) {
                                     adClosed = true;
                                     mAd = null;
                                 }
@@ -56,7 +54,7 @@ public class PyRewardedInterstitialAd {
                         }
 
                         @Override
-                        public void onAdFailedToLoad(Exception error) {
+                        public void onAdFailedToLoad(LoadAdError error) {
                             mAd = null;
                         }
                     });

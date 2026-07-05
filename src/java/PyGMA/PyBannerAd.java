@@ -12,7 +12,8 @@ import com.google.android.libraries.ads.mobile.sdk.banner.BannerAd;
 import com.google.android.libraries.ads.mobile.sdk.banner.BannerAdRequest;
 import com.google.android.libraries.ads.mobile.sdk.banner.AdSize;
 import com.google.android.libraries.ads.mobile.sdk.banner.AdView;
-import com.google.android.libraries.ads.mobile.sdk.banner.BannerAdLoadCallback;
+import com.google.android.libraries.ads.mobile.sdk.common.AdLoadCallback;
+import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError;
 
 public class PyBannerAd {
     private static final String TAG = "PyBannerAd";
@@ -32,11 +33,9 @@ public class PyBannerAd {
                 bannerLayout = new LinearLayout(mActivity);
                 bannerLayout.setOrientation(LinearLayout.VERTICAL);
                 bannerLayout.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL);
-
                 mActivity.addContentView(
                         bannerLayout,
-                        new ViewGroup.LayoutParams(
-                                ViewGroup.LayoutParams.MATCH_PARENT,
+                        new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                                 ViewGroup.LayoutParams.MATCH_PARENT));
             }
 
@@ -45,23 +44,20 @@ public class PyBannerAd {
                 bannerLayout.addView(mAdView);
             }
 
-            BannerAdRequest request = new BannerAdRequest.Builder(AdSize.BANNER, mAdUnitId).build();
+            AdSize adSize = AdSize.getLargeAnchoredAdaptiveBannerAdSize(mActivity, 360);
+            BannerAdRequest request = new BannerAdRequest.Builder(mAdUnitId, adSize).build();
 
-            BannerAd.load(
-                    mActivity,
-                    request,
-                    new BannerAdLoadCallback() {
-                        @Override
-                        public void onAdLoaded(BannerAd bannerAd) {
-                            Log.d(TAG, "Banner Loaded");
-                            mAdView.registerBannerAd(bannerAd);
-                        }
+            mAdView.loadAd(request, new AdLoadCallback<BannerAd>() {
+                @Override
+                public void onAdLoaded(BannerAd ad) {
+                    Log.d(TAG, "Banner Loaded");
+                }
 
-                        @Override
-                        public void onAdFailedToLoad(Exception error) {
-                            Log.e(TAG, "Banner Failed to load: " + error.getMessage());
-                        }
-                    });
+                @Override
+                public void onAdFailedToLoad(LoadAdError error) {
+                    Log.e(TAG, "Banner Failed: " + error.getMessage());
+                }
+            });
         });
     }
 

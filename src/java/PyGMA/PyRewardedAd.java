@@ -3,17 +3,16 @@ package PyGMA;
 import android.app.Activity;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 
 import com.google.android.libraries.ads.mobile.sdk.rewarded.RewardedAd;
-import com.google.android.libraries.ads.mobile.sdk.rewarded.RewardedAdRequest;
-import com.google.android.libraries.ads.mobile.sdk.rewarded.RewardedAdLoadCallback;
 import com.google.android.libraries.ads.mobile.sdk.rewarded.RewardedAdEventCallback;
 import com.google.android.libraries.ads.mobile.sdk.rewarded.RewardItem;
-import com.google.android.libraries.ads.mobile.sdk.common.AdError;
+import com.google.android.libraries.ads.mobile.sdk.common.AdRequest;
+import com.google.android.libraries.ads.mobile.sdk.common.AdLoadCallback;
+import com.google.android.libraries.ads.mobile.sdk.common.LoadAdError;
+import com.google.android.libraries.ads.mobile.sdk.common.FullScreenContentError;
 
 public class PyRewardedAd {
-    private static final String TAG = "PyRewardedAd";
     private RewardedAd mRewardedAd;
     private Activity mActivity;
     private String mAdUnitId;
@@ -28,15 +27,14 @@ public class PyRewardedAd {
 
     public void loadAd() {
         new Handler(Looper.getMainLooper()).post(() -> {
-            RewardedAdRequest request = new RewardedAdRequest.Builder(mAdUnitId).build();
+            AdRequest request = new AdRequest.Builder(mAdUnitId).build();
 
             RewardedAd.load(
                     mActivity,
                     request,
-                    new RewardedAdLoadCallback() {
+                    new AdLoadCallback<RewardedAd>() {
                         @Override
                         public void onAdLoaded(RewardedAd rewardedAd) {
-                            Log.d(TAG, "Rewarded Ad Loaded.");
                             mRewardedAd = rewardedAd;
                             rewardEarned = false;
                             adClosed = false;
@@ -44,14 +42,12 @@ public class PyRewardedAd {
                             mRewardedAd.setAdEventCallback(new RewardedAdEventCallback() {
                                 @Override
                                 public void onAdDismissedFullScreenContent() {
-                                    Log.d(TAG, "Rewarded Ad closed by user.");
                                     adClosed = true;
                                     mRewardedAd = null;
                                 }
 
                                 @Override
-                                public void onAdFailedToShowFullScreenContent(AdError adError) {
-                                    Log.e(TAG, "Rewarded Ad failed to show.");
+                                public void onAdFailedToShowFullScreenContent(FullScreenContentError error) {
                                     adClosed = true;
                                     mRewardedAd = null;
                                 }
@@ -59,8 +55,7 @@ public class PyRewardedAd {
                         }
 
                         @Override
-                        public void onAdFailedToLoad(Exception error) {
-                            Log.e(TAG, "Rewarded Ad Failed to Load.");
+                        public void onAdFailedToLoad(LoadAdError error) {
                             mRewardedAd = null;
                         }
                     });
@@ -71,11 +66,8 @@ public class PyRewardedAd {
         new Handler(Looper.getMainLooper()).post(() -> {
             if (mRewardedAd != null) {
                 mRewardedAd.show(mActivity, (RewardItem rewardItem) -> {
-                    Log.d(TAG, "User earned the reward!");
                     rewardEarned = true;
                 });
-            } else {
-                Log.w(TAG, "The rewarded ad wasn't loaded yet.");
             }
         });
     }
@@ -85,9 +77,9 @@ public class PyRewardedAd {
     }
 
     public boolean checkAndResetReward() {
-        boolean earned = rewardEarned;
+        boolean e = rewardEarned;
         rewardEarned = false;
-        return earned;
+        return e;
     }
 
     public boolean checkAndResetAdClosed() {
