@@ -15,14 +15,13 @@ class AndroidGMARewardedAd:
     ):
         AndroidBridge.load_classes()
 
-        self.listener = NativeAdListener(
-            on_loaded=on_ad_loaded,
-            on_closed=on_ad_closed,
-            on_failed=on_ad_failed,
-            on_rewarded=on_reward_earned,
-            on_clicked=on_ad_clicked,
-            on_impression=on_ad_impression,
-        )
+        self.listener = NativeAdListener()
+        self.listener.on_loaded = on_ad_loaded
+        self.listener.on_rewarded = on_reward_earned
+        self.listener.on_closed = on_ad_closed
+        self.listener.on_failed = on_ad_failed
+        self.listener.on_clicked = on_ad_clicked
+        self.listener.on_impression = on_ad_impression
 
         self._j_ad = AndroidBridge.PyRewardedAd(
             AndroidBridge.activity, ad_unit_id, self.listener
