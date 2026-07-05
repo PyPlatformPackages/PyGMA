@@ -32,11 +32,8 @@ Repository = "https://github.com/PyPlatformPackages/PyGMA"
 Issues = "https://github.com/PyPlatformPackages/PyGMA/issues"
 
 
-[tool.uv.build-backend]
-module-name = "pygma"
-
 [tool.pyjnius]
-java-paths = ["src/java/"]
+java-paths = ["src/java"]
 
 [tool.uv.sources]
 ksp-builder = { git = "https://github.com/kivy-school/ksp-builder" }
