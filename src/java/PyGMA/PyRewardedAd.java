@@ -29,8 +29,8 @@ public class PyRewardedAd {
         new Handler(Looper.getMainLooper()).post(() -> {
             AdRequest request = new AdRequest.Builder(mAdUnitId).build();
 
+            // FIX: Removed mActivity context parameter
             RewardedAd.load(
-                    mActivity,
                     request,
                     new AdLoadCallback<RewardedAd>() {
                         @Override

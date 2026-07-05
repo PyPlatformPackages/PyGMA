@@ -29,8 +29,9 @@ public class PyRewardedInterstitialAd {
         new Handler(Looper.getMainLooper()).post(() -> {
             AdRequest request = new AdRequest.Builder(mAdUnitId).build();
 
+            // FIX: Removed mActivity context parameter
             RewardedInterstitialAd.load(
-                    mActivity, request,
+                    request,
                     new AdLoadCallback<RewardedInterstitialAd>() {
                         @Override
                         public void onAdLoaded(RewardedInterstitialAd ad) {
