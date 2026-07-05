@@ -19,7 +19,13 @@ class GMARewardedAd:
             from .android.rewarded import AndroidGMARewardedAd
 
             self._impl = AndroidGMARewardedAd(
-                ad_unit_id, on_ad_loaded, on_reward_earned, on_ad_closed, on_ad_failed, on_ad_clicked, on_ad_impression
+                ad_unit_id,
+                on_ad_loaded,
+                on_reward_earned,
+                on_ad_closed,
+                on_ad_failed,
+                on_ad_clicked,
+                on_ad_impression,
             )
 
     def load(self):

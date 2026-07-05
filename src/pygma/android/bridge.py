@@ -33,9 +33,7 @@ class AndroidBridge:
         cls.PyBannerAd = autoclass("PyGMA.PyBannerAd")
         cls.PyInterstitialAd = autoclass("PyGMA.PyInterstitialAd")
         cls.PyRewardedAd = autoclass("PyGMA.PyRewardedAd")
-        cls.PyRewardedInterstitialAd = autoclass(
-            "PyGMA.PyRewardedInterstitialAd"
-        )
+        cls.PyRewardedInterstitialAd = autoclass("PyGMA.PyRewardedInterstitialAd")
         cls.PyAppOpenAd = autoclass("PyGMA.PyAppOpenAd")
 
         cls._initialized = True

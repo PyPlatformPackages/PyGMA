@@ -21,7 +21,12 @@ class GMAInterstitialAd:
             from .android.interstitial import AndroidGMAInterstitialAd
 
             self._impl = AndroidGMAInterstitialAd(
-                ad_unit_id, on_ad_loaded, on_ad_closed, on_ad_failed, on_ad_clicked, on_ad_impression
+                ad_unit_id,
+                on_ad_loaded,
+                on_ad_closed,
+                on_ad_failed,
+                on_ad_clicked,
+                on_ad_impression,
             )
         elif self.platform == "ios":
             # Future hooks for iOS implementation go here:
