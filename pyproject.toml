@@ -1,0 +1,50 @@
+[build-system]
+requires = ["ksp-builder", "setuptools>=65.0.0", "wheel>=0.36.0"]
+build-backend = "ksp_builder"
+
+[project]
+name = "pygma"
+version = "0.1.0"
+description = "Cross-platform wrapper for Google Mobile Ads (GMA) Next-Gen SDK."
+readme = "README.md"
+requires-python = ">=3.13"
+license = { text = "MIT" }
+authors = [
+    { name = "Kartavya Shukla", email = "novfensec@protonmail.com" }
+]
+keywords = ["android", "gma", "admob", "pyjnius", "google-mobile-ads"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: Android",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+# Core dependencies required for PyGMA to run
+dependencies = [
+    "pyjnius>=1.6.0",
+]
+
+[project.urls]
+Repository = "https://github.com/PyPlatformPackages/PyGMA"
+Issues = "https://github.com/PyPlatformPackages/PyGMA/issues"
+
+
+[tool.uv.build-backend]
+module-name = "pygma"
+
+[tool.pyjnius]
+java-paths = ["src/java/"]
+
+[tool.uv.sources]
+ksp-builder = { git = "https://github.com/kivy-school/ksp-builder" }
+
+[tool.kivy-school.android]
+gradle_dependencies = [
+    "com.google.android.libraries.ads.mobile.sdk:ads-mobile-sdk:1.2.1",
+]
+permissions = [
+    "INTERNET", "ACCESS_NETWORK_STATE",
+]
