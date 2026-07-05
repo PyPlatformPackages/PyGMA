@@ -16,49 +16,61 @@ public class PyRewardedInterstitialAd {
     private RewardedInterstitialAd mAd;
     private Activity mActivity;
     private String mAdUnitId;
+    private PyGMAListener mListener;
 
-    private boolean rewardEarned = false;
-    private boolean adClosed = false;
-
-    public PyRewardedInterstitialAd(Activity activity, String adUnitId) {
+    public PyRewardedInterstitialAd(Activity activity, String adUnitId, PyGMAListener listener) {
         this.mActivity = activity;
         this.mAdUnitId = adUnitId;
+        this.mListener = listener;
     }
 
     public void loadAd() {
         new Handler(Looper.getMainLooper()).post(() -> {
             AdRequest request = new AdRequest.Builder(mAdUnitId).build();
 
-            // FIX: Removed mActivity context parameter
-            RewardedInterstitialAd.load(
-                    request,
-                    new AdLoadCallback<RewardedInterstitialAd>() {
+            RewardedInterstitialAd.load(request, new AdLoadCallback<RewardedInterstitialAd>() {
+                @Override
+                public void onAdLoaded(RewardedInterstitialAd ad) {
+                    mAd = ad;
+                    if (mListener != null)
+                        mListener.onAdLoaded();
+
+                    mAd.setAdEventCallback(new RewardedInterstitialAdEventCallback() {
                         @Override
-                        public void onAdLoaded(RewardedInterstitialAd ad) {
-                            mAd = ad;
-                            rewardEarned = false;
-                            adClosed = false;
-
-                            mAd.setAdEventCallback(new RewardedInterstitialAdEventCallback() {
-                                @Override
-                                public void onAdDismissedFullScreenContent() {
-                                    adClosed = true;
-                                    mAd = null;
-                                }
-
-                                @Override
-                                public void onAdFailedToShowFullScreenContent(FullScreenContentError error) {
-                                    adClosed = true;
-                                    mAd = null;
-                                }
-                            });
-                        }
-
-                        @Override
-                        public void onAdFailedToLoad(LoadAdError error) {
+                        public void onAdDismissedFullScreenContent() {
+                            if (mListener != null)
+                                mListener.onAdClosed();
                             mAd = null;
                         }
+
+                        @Override
+                        public void onAdFailedToShowFullScreenContent(FullScreenContentError error) {
+                            if (mListener != null)
+                                mListener.onAdFailed(error.getMessage());
+                            mAd = null;
+                        }
+
+                        @Override
+                        public void onAdClicked() {
+                            if (mListener != null)
+                                mListener.onAdClicked();
+                        }
+
+                        @Override
+                        public void onAdImpression() {
+                            if (mListener != null)
+                                mListener.onAdImpression();
+                        }
                     });
+                }
+
+                @Override
+                public void onAdFailedToLoad(LoadAdError error) {
+                    if (mListener != null)
+                        mListener.onAdFailed(error.getMessage());
+                    mAd = null;
+                }
+            });
         });
     }
 
@@ -66,7 +78,8 @@ public class PyRewardedInterstitialAd {
         new Handler(Looper.getMainLooper()).post(() -> {
             if (mAd != null) {
                 mAd.show(mActivity, (RewardItem rewardItem) -> {
-                    rewardEarned = true;
+                    if (mListener != null)
+                        mListener.onRewardEarned();
                 });
             }
         });
@@ -74,19 +87,5 @@ public class PyRewardedInterstitialAd {
 
     public boolean isLoaded() {
         return mAd != null;
-    }
-
-    public boolean checkAndResetReward() {
-        boolean e = rewardEarned;
-        rewardEarned = false;
-        return e;
-    }
-
-    public boolean checkAndResetAdClosed() {
-        if (adClosed) {
-            adClosed = false;
-            return true;
-        }
-        return false;
     }
 }

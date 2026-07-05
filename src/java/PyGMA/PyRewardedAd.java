@@ -16,49 +16,49 @@ public class PyRewardedAd {
     private RewardedAd mRewardedAd;
     private Activity mActivity;
     private String mAdUnitId;
+    private PyGMAListener mListener;
 
-    private boolean rewardEarned = false;
-    private boolean adClosed = false;
-
-    public PyRewardedAd(Activity activity, String adUnitId) {
+    public PyRewardedAd(Activity activity, String adUnitId, PyGMAListener listener) {
         this.mActivity = activity;
         this.mAdUnitId = adUnitId;
+        this.mListener = listener;
     }
 
     public void loadAd() {
         new Handler(Looper.getMainLooper()).post(() -> {
             AdRequest request = new AdRequest.Builder(mAdUnitId).build();
 
-            // FIX: Removed mActivity context parameter
-            RewardedAd.load(
-                    request,
-                    new AdLoadCallback<RewardedAd>() {
+            RewardedAd.load(request, new AdLoadCallback<RewardedAd>() {
+                @Override
+                public void onAdLoaded(RewardedAd rewardedAd) {
+                    mRewardedAd = rewardedAd;
+                    if (mListener != null)
+                        mListener.onAdLoaded();
+
+                    mRewardedAd.setAdEventCallback(new RewardedAdEventCallback() {
                         @Override
-                        public void onAdLoaded(RewardedAd rewardedAd) {
-                            mRewardedAd = rewardedAd;
-                            rewardEarned = false;
-                            adClosed = false;
-
-                            mRewardedAd.setAdEventCallback(new RewardedAdEventCallback() {
-                                @Override
-                                public void onAdDismissedFullScreenContent() {
-                                    adClosed = true;
-                                    mRewardedAd = null;
-                                }
-
-                                @Override
-                                public void onAdFailedToShowFullScreenContent(FullScreenContentError error) {
-                                    adClosed = true;
-                                    mRewardedAd = null;
-                                }
-                            });
+                        public void onAdDismissedFullScreenContent() {
+                            if (mListener != null)
+                                mListener.onAdClosed();
+                            mRewardedAd = null;
                         }
 
                         @Override
-                        public void onAdFailedToLoad(LoadAdError error) {
+                        public void onAdFailedToShowFullScreenContent(FullScreenContentError error) {
+                            if (mListener != null)
+                                mListener.onAdFailed(error.getMessage());
                             mRewardedAd = null;
                         }
                     });
+                }
+
+                @Override
+                public void onAdFailedToLoad(LoadAdError error) {
+                    if (mListener != null)
+                        mListener.onAdFailed(error.getMessage());
+                    mRewardedAd = null;
+                }
+            });
         });
     }
 
@@ -66,7 +66,8 @@ public class PyRewardedAd {
         new Handler(Looper.getMainLooper()).post(() -> {
             if (mRewardedAd != null) {
                 mRewardedAd.show(mActivity, (RewardItem rewardItem) -> {
-                    rewardEarned = true;
+                    if (mListener != null)
+                        mListener.onRewardEarned();
                 });
             }
         });
@@ -74,19 +75,5 @@ public class PyRewardedAd {
 
     public boolean isLoaded() {
         return mRewardedAd != null;
-    }
-
-    public boolean checkAndResetReward() {
-        boolean e = rewardEarned;
-        rewardEarned = false;
-        return e;
-    }
-
-    public boolean checkAndResetAdClosed() {
-        if (adClosed) {
-            adClosed = false;
-            return true;
-        }
-        return false;
     }
 }

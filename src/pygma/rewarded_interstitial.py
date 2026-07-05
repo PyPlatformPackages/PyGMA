@@ -5,9 +5,12 @@ class GMARewardedInterstitialAd:
     def __init__(
         self,
         ad_unit_id: str,
+        on_ad_loaded=None,
         on_reward_earned=None,
         on_ad_closed=None,
         on_ad_failed=None,
+        on_ad_clicked=None,
+        on_ad_impression=None,
     ):
         self.platform = get_current_platform()
         self._impl = None
@@ -16,7 +19,7 @@ class GMARewardedInterstitialAd:
             from .android.rewarded_interstitial import AndroidGMARewardedInterstitialAd
 
             self._impl = AndroidGMARewardedInterstitialAd(
-                ad_unit_id, on_reward_earned, on_ad_closed, on_ad_failed
+                ad_unit_id, on_ad_loaded, on_reward_earned, on_ad_closed, on_ad_failed, on_ad_clicked, on_ad_impression
             )
 
     def load(self):

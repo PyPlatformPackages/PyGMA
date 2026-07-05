@@ -15,46 +15,61 @@ public class PyInterstitialAd {
     private InterstitialAd mInterstitialAd;
     private Activity mActivity;
     private String mAdUnitId;
-    private boolean adClosed = false;
+    private PyGMAListener mListener;
 
-    public PyInterstitialAd(Activity activity, String adUnitId) {
+    public PyInterstitialAd(Activity activity, String adUnitId, PyGMAListener listener) {
         this.mActivity = activity;
         this.mAdUnitId = adUnitId;
+        this.mListener = listener;
     }
 
     public void loadAd() {
         new Handler(Looper.getMainLooper()).post(() -> {
             AdRequest request = new AdRequest.Builder(mAdUnitId).build();
 
-            // FIX: Removed mActivity context parameter
-            InterstitialAd.load(
-                    request,
-                    new AdLoadCallback<InterstitialAd>() {
+            InterstitialAd.load(request, new AdLoadCallback<InterstitialAd>() {
+                @Override
+                public void onAdLoaded(InterstitialAd interstitialAd) {
+                    mInterstitialAd = interstitialAd;
+                    if (mListener != null)
+                        mListener.onAdLoaded();
+
+                    mInterstitialAd.setAdEventCallback(new InterstitialAdEventCallback() {
                         @Override
-                        public void onAdLoaded(InterstitialAd interstitialAd) {
-                            mInterstitialAd = interstitialAd;
-                            adClosed = false;
-
-                            mInterstitialAd.setAdEventCallback(new InterstitialAdEventCallback() {
-                                @Override
-                                public void onAdDismissedFullScreenContent() {
-                                    adClosed = true;
-                                    mInterstitialAd = null;
-                                }
-
-                                @Override
-                                public void onAdFailedToShowFullScreenContent(FullScreenContentError error) {
-                                    adClosed = true;
-                                    mInterstitialAd = null;
-                                }
-                            });
-                        }
-
-                        @Override
-                        public void onAdFailedToLoad(LoadAdError error) {
+                        public void onAdDismissedFullScreenContent() {
+                            if (mListener != null)
+                                mListener.onAdClosed();
                             mInterstitialAd = null;
                         }
+
+                        @Override
+                        public void onAdFailedToShowFullScreenContent(FullScreenContentError error) {
+                            if (mListener != null)
+                                mListener.onAdFailed(error.getMessage());
+                            mInterstitialAd = null;
+                        }
+
+                        @Override
+                        public void onAdClicked() {
+                            if (mListener != null)
+                                mListener.onAdClicked();
+                        }
+
+                        @Override
+                        public void onAdImpression() {
+                            if (mListener != null)
+                                mListener.onAdImpression();
+                        }
                     });
+                }
+
+                @Override
+                public void onAdFailedToLoad(LoadAdError error) {
+                    if (mListener != null)
+                        mListener.onAdFailed(error.getMessage());
+                    mInterstitialAd = null;
+                }
+            });
         });
     }
 
@@ -68,13 +83,5 @@ public class PyInterstitialAd {
 
     public boolean isLoaded() {
         return mInterstitialAd != null;
-    }
-
-    public boolean checkAndResetAdClosed() {
-        if (adClosed) {
-            adClosed = false;
-            return true;
-        }
-        return false;
     }
 }

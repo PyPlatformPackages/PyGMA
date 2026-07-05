@@ -15,13 +15,13 @@ public class PyAppOpenAd {
     private AppOpenAd mAppOpenAd;
     private Activity mActivity;
     private String mAdUnitId;
-
+    private PyGMAListener mListener;
     private boolean isShowingAd = false;
-    private boolean adClosed = false;
 
-    public PyAppOpenAd(Activity activity, String adUnitId) {
+    public PyAppOpenAd(Activity activity, String adUnitId, PyGMAListener listener) {
         this.mActivity = activity;
         this.mAdUnitId = adUnitId;
+        this.mListener = listener;
     }
 
     public void loadAd() {
@@ -31,35 +31,51 @@ public class PyAppOpenAd {
         new Handler(Looper.getMainLooper()).post(() -> {
             AdRequest request = new AdRequest.Builder(mAdUnitId).build();
 
-            AppOpenAd.load(
-                    request,
-                    new AdLoadCallback<AppOpenAd>() {
+            AppOpenAd.load(request, new AdLoadCallback<AppOpenAd>() {
+                @Override
+                public void onAdLoaded(AppOpenAd ad) {
+                    mAppOpenAd = ad;
+                    if (mListener != null)
+                        mListener.onAdLoaded();
+
+                    mAppOpenAd.setAdEventCallback(new AppOpenAdEventCallback() {
                         @Override
-                        public void onAdLoaded(AppOpenAd ad) {
-                            mAppOpenAd = ad;
-                            adClosed = false;
-
-                            mAppOpenAd.setAdEventCallback(new AppOpenAdEventCallback() {
-                                @Override
-                                public void onAdDismissedFullScreenContent() {
-                                    mAppOpenAd = null;
-                                    isShowingAd = false;
-                                    adClosed = true;
-                                    loadAd();
-                                }
-
-                                @Override
-                                public void onAdFailedToShowFullScreenContent(FullScreenContentError error) {
-                                    isShowingAd = false;
-                                }
-                            });
+                        public void onAdDismissedFullScreenContent() {
+                            if (mListener != null)
+                                mListener.onAdClosed();
+                            mAppOpenAd = null;
+                            isShowingAd = false;
+                            loadAd(); // Auto-preload next
                         }
 
                         @Override
-                        public void onAdFailedToLoad(LoadAdError error) {
-                            mAppOpenAd = null;
+                        public void onAdFailedToShowFullScreenContent(FullScreenContentError error) {
+                            if (mListener != null)
+                                mListener.onAdFailed(error.getMessage());
+                            isShowingAd = false;
+                        }
+
+                        @Override
+                        public void onAdClicked() {
+                            if (mListener != null)
+                                mListener.onAdClicked();
+                        }
+
+                        @Override
+                        public void onAdImpression() {
+                            if (mListener != null)
+                                mListener.onAdImpression();
                         }
                     });
+                }
+
+                @Override
+                public void onAdFailedToLoad(LoadAdError error) {
+                    if (mListener != null)
+                        mListener.onAdFailed(error.getMessage());
+                    mAppOpenAd = null;
+                }
+            });
         });
     }
 
@@ -72,13 +88,5 @@ public class PyAppOpenAd {
                 loadAd();
             }
         });
-    }
-
-    public boolean checkAndResetAdClosed() {
-        if (adClosed) {
-            adClosed = false;
-            return true;
-        }
-        return false;
     }
 }
